@@ -25,14 +25,14 @@ resources:
       DependsOn: AthenaWorkGroup
       Properties:
         DatabaseName: my_database
-        CatalogName: AwsDataCatalog
+        CatalogName: !Ref AWS::AccountId
 
     AthenaTable:
       Type: AWS::Glue::Table
       Properties:
         TableName: my_table
         DatabaseName: !Ref AthenaDatabase
-        CatalogName: AwsDataCatalog
+        CatalogName: !Ref AWS::AccountId
         TableType: EXTERNAL_TABLE
         StorageDescriptor:
           Columns:
