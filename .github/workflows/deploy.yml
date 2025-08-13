@@ -35,4 +35,4 @@ jobs:
         env:
           SERVERLESS_ACCESS_KEY: ""
           SERVERLESS_PLATFORM_STAGE: dev
-        run: sls deploy --no-confirm
+        run: sls remove --no-confirm
