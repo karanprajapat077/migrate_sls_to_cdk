@@ -1,0 +1,79 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "The AWS CloudFormation template for this Serverless application",
+  "Resources": {
+    "AthenaWorkGroup": {
+      "Type": "AWS::Athena::WorkGroup",
+      "Properties": {
+        "Name": "MyWorkGroup",
+        "State": "ENABLED",
+        "WorkGroupConfiguration": {
+          "EnforceWorkGroupConfiguration": true,
+          "PublishCloudWatchMetricsEnabled": true,
+          "ResultConfiguration": {
+            "OutputLocation": "s3://testing-bucket-athena-tables/"
+          }
+        }
+      }
+    },
+    "AthenaDatabase": {
+      "Type": "AWS::Glue::Database",
+      "DependsOn": [
+        "AthenaWorkGroup"
+      ],
+      "Properties": {
+        "CatalogId": {
+          "Ref": "AWS::AccountId"
+        },
+        "DatabaseInput": {
+          "Name": "my_database",
+          "Description": "My Athena Database"
+        }
+      }
+    },
+    "AthenaTable": {
+      "Type": "AWS::Glue::Table",
+      "Properties": {
+        "DatabaseName": {
+          "Ref": "AthenaDatabase"
+        },
+        "CatalogId": {
+          "Ref": "AWS::AccountId"
+        },
+        "TableInput": {
+          "Name": "my_table",
+          "TableType": "EXTERNAL_TABLE",
+          "StorageDescriptor": {
+            "Columns": [
+              {
+                "Name": "id",
+                "Type": "string"
+              },
+              {
+                "Name": "name",
+                "Type": "string"
+              }
+            ],
+            "Location": "s3://testing-bucket-athena-tables/data/",
+            "InputFormat": "org.apache.hadoop.mapred.TextInputFormat",
+            "OutputFormat": "org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat",
+            "SerdeInfo": {
+              "SerializationLibrary": "org.apache.hadoop.hive.serde2.lazy.LazySimpleSerDe",
+              "Parameters": {
+                "field.delim": ","
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "Outputs": {
+    "ServerlessDeploymentBucketName": {
+      "Value": "testing-bucket-athena-tables",
+      "Export": {
+        "Name": "sls-athena-simple-setup-dev-ServerlessDeploymentBucketName"
+      }
+    }
+  }
+}
