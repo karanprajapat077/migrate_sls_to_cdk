@@ -1,4 +1,5 @@
-name: Deploy Glue Resources to AWS
+name: First CDK Deployment Workflow
+description: This workflow deploys a CDK stack to AWS when changes are pushed to the main branch.
 
 on:
   push:
@@ -8,31 +9,42 @@ on:
   workflow_dispatch:
 
 jobs:
-  deploy:
-    name: Deploy via Serverless Framework
+  Deployment:
     runs-on: ubuntu-latest
+    # environment: prod   # requires approval if set in repo setting
+
+    env:
+      AWS_REGION: ${{ secrets.AWS_REGION }}
 
     steps:
-      - name: Checkout Code
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Set up Python
+        uses: actions/setup-python@v4
         with:
-          node-version: '18'
+          python-version: '3.9'
 
-      - name: Install Serverless Framework
-        run: npm install -g serverless@2.72.0
+      - name: Install dependencies
+        run: |
+          python -m venv .venv
+          source .venv/bin/activate
+          pip install -r requirements.txt
 
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
+      - name: Install CDK
+        run: npm install -g aws-cdk
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ap-south-1
+          aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Deploy with Serverless
-        env:
-          SERVERLESS_ACCESS_KEY: ""
-          SERVERLESS_PLATFORM_STAGE: dev
-        run: sls deploy --no-confirm
+      - name: CDK Deploy
+        run: |
+          source .venv/bin/activate
+          cdk bootstrap # Uncomment if you need to bootstrap the environment
+          cdk diff
+          cdk synth
+          cdk deploy --all --require-approval never
