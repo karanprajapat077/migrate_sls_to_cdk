@@ -4,6 +4,8 @@ provider:
   name: aws
   region: ap-south-1
   runtime: nodejs18.x
+  deploymentBucket:
+    name: new-testing-bucket-20250107
 
 resources:
   Resources:
@@ -19,16 +21,17 @@ resources:
             OutputLocation: s3://new-testing-bucket-20250107/
 
     AthenaDatabase:
-      Type: AWS::Athena::Database
+      Type: AWS::Glue::Database
+      DependsOn: AthenaWorkGroup
       Properties:
         DatabaseName: my_database
         CatalogName: AwsDataCatalog
 
     AthenaTable:
-      Type: AWS::Athena::Table
+      Type: AWS::Glue::Table
       Properties:
         TableName: my_table
-        DatabaseName: my_database
+        DatabaseName: !Ref AthenaDatabase
         CatalogName: AwsDataCatalog
         TableType: EXTERNAL_TABLE
         StorageDescriptor:
