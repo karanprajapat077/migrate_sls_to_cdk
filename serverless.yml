@@ -1,0 +1,52 @@
+service: athena-simple-setup
+
+provider:
+  name: aws
+  region: ap-south-1
+  runtime: nodejs18.x
+  deploymentBucket:
+    name: testing-bucket-athena-tables
+
+resources:
+  Resources:
+    AthenaWorkGroup:
+      Type: AWS::Athena::WorkGroup
+      Properties:
+        Name: MyWorkGroup
+        State: ENABLED
+        WorkGroupConfiguration:
+          EnforceWorkGroupConfiguration: true
+          PublishCloudWatchMetricsEnabled: true
+          ResultConfiguration:
+            OutputLocation: s3://testing-bucket-athena-tables/
+
+    AthenaDatabase:
+      Type: AWS::Glue::Database
+      DependsOn: AthenaWorkGroup
+      Properties:
+        CatalogId: !Ref AWS::AccountId
+        DatabaseInput: 
+          Name: my_database
+          Description: My Athena Database
+
+    AthenaTable:
+      Type: AWS::Glue::Table
+      Properties:
+        DatabaseName: !Ref AthenaDatabase
+        CatalogId: !Ref AWS::AccountId
+        TableInput:
+          Name: my_table
+          TableType: EXTERNAL_TABLE
+          StorageDescriptor:
+            Columns:
+              - Name: id
+                Type: string
+              - Name: name
+                Type: string
+            Location: s3://testing-bucket-athena-tables/data/
+            InputFormat: org.apache.hadoop.mapred.TextInputFormat
+            OutputFormat: org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat
+            SerdeInfo:
+              SerializationLibrary: org.apache.hadoop.hive.serde2.lazy.LazySimpleSerDe
+              Parameters:
+                "field.delim": ","
