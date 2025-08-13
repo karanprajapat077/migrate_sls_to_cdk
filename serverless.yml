@@ -5,7 +5,7 @@ provider:
   region: ap-south-1
   runtime: nodejs18.x
   deploymentBucket:
-    name: new-testing-bucket-20250107
+    name: testing-bucket-athena-tables
 
 resources:
   Resources:
@@ -18,7 +18,7 @@ resources:
           EnforceWorkGroupConfiguration: true
           PublishCloudWatchMetricsEnabled: true
           ResultConfiguration:
-            OutputLocation: s3://new-testing-bucket-20250107/
+            OutputLocation: s3://testing-bucket-athena-tables/
 
     AthenaDatabase:
       Type: AWS::Glue::Database
@@ -40,7 +40,7 @@ resources:
               Type: string
             - Name: name
               Type: string
-          Location: s3://new-testing-bucket-20250107/data/
+          Location: s3://testing-bucket-athena-tables/data/
           InputFormat: org.apache.hadoop.mapred.TextInputFormat
           OutputFormat: org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat
           SerdeInfo:
